@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank you — Boost Index</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js" defer></script>
+</head>
+<body>
+  <main class="hero">
+    <div class="container" style="max-width: 520px;">
+      <p class="eyebrow">You're in</p>
+      <h1>Your benchmark report</h1>
+      <p class="hero-lead">Download the PDF below. Consider the Playbook or Pro tier if you want scoring tools and monthly updates.</p>
+      <p>
+        <a href="../Boosted_Articles_Monetary_Report.pdf" class="btn btn-primary" id="pdfLink" download>Download PDF</a>
+        <a href="index.html#pricing" class="btn btn-secondary">View pricing</a>
+      </p>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var cfg = window.BOOST_INDEX_CONFIG || {};
+      var link = document.getElementById('pdfLink');
+      if (link && cfg.PDF_PATH) link.href = cfg.PDF_PATH;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Benchmark report and tools built from 33,189 Medium boosts and 64.8M reads. Know what gets distributed—and what earns.">
+  <title>Boost Index — Medium Boost Intelligence</title>
+  <link rel="stylesheet" href="styles.css">
+  <!--
+    CONFIG: Edit landing/config.js before deploy (Gumroad URLs, Formspree endpoint).
+  -->
+  <script src="config.js" defer></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#">Boost<span>Index</span></a>
+      <nav class="nav">
+        <a class="hide-mobile" href="#proof">Data</a>
+        <a class="hide-mobile" href="#pricing">Pricing</a>
+        <a class="hide-mobile" href="#faq">FAQ</a>
+        <a href="#lead" class="btn btn-primary">Free report</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <p class="config-hint hide-print" id="configBanner" hidden>
+          Developer: set <code>FORM_ENDPOINT</code> and Gumroad URLs in <code>landing/config.js</code>.
+        </p>
+
+        <p class="eyebrow" id="heroEyebrow">33,189 boosted articles analyzed</p>
+        <h1>Write what Medium actually boosts—and gets paid</h1>
+        <p class="hero-lead">
+          We built a analytics corpus from <strong>64.8 million reads</strong> across boosted stories
+          (Sep 2022 – May 2026). Get benchmarks, topic ROI, and scoring tools—not generic writing advice.
+        </p>
+        <div class="hero-cta">
+          <a href="#lead" class="btn btn-primary">Download free report (PDF)</a>
+          <a href="#pricing" class="btn btn-secondary">See plans</a>
+        </div>
+
+        <!-- BOOST_STATS_ROW:BEGIN -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="val">33,189</div>
+            <div class="lbl">Boosted articles</div>
+          </div>
+          <div class="stat-card">
+            <div class="val">64.8M</div>
+            <div class="lbl">Total reads</div>
+          </div>
+          <div class="stat-card">
+            <div class="val">77%</div>
+            <div class="lbl">Paywalled</div>
+          </div>
+          <div class="stat-card">
+            <div class="val">611</div>
+            <div class="lbl">Median reads</div>
+          </div>
+          <div class="stat-card">
+            <div class="val">11,828</div>
+            <div class="lbl">Top topic avg reads</div>
+          </div>
+        </div>
+        <!-- BOOST_STATS_ROW:END -->
+      </div>
+    </section>
+
+    <section id="proof">
+      <div class="container">
+        <h2 class="section-title">What the data shows</h2>
+        <p class="section-sub">
+          Aggregated from <code>boosted_articles.db</code> — not surveys. Use these benchmarks to set expectations
+          and prioritize topics before you publish.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Topic</th>
+                <th class="num">Articles</th>
+                <th class="num">Avg reads</th>
+                <th class="num">Locked %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- BOOST_TOPIC_ROWS:BEGIN -->
+              <tr class="highlight-row">
+                <td>productivity</td>
+                <td class="num">331</td>
+                <td class="num">11,828</td>
+                <td class="num">65</td>
+              </tr>
+              <tr>
+                <td>programming</td>
+                <td class="num">1,259</td>
+                <td class="num">4,829</td>
+                <td class="num">60</td>
+              </tr>
+              <tr>
+                <td>artificial-intelligence</td>
+                <td class="num">1,669</td>
+                <td class="num">4,151</td>
+                <td class="num">71</td>
+              </tr>
+              <tr>
+                <td>self</td>
+                <td class="num">2,501</td>
+                <td class="num">3,104</td>
+                <td class="num">74</td>
+              </tr>
+              <tr>
+                <td>mental-health</td>
+                <td class="num">1,147</td>
+                <td class="num">3,153</td>
+                <td class="num">75</td>
+              </tr>
+              <!-- BOOST_TOPIC_ROWS:END -->
+            </tbody>
+          </table>
+        </div>
+
+        <p class="section-sub" style="margin-top: 1.5rem; margin-bottom: 0;">
+          Power authors (25+ boosts) — 12% of writers — drive ~60% of total reads.
+          Median boosted article: <strong>611 reads</strong>. Mean: <strong>1,951</strong> (averages lie).
+        </p>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <h2 class="section-title">Choose your path</h2>
+        <p class="section-sub">Start free. Upgrade when you want live scoring and monthly benchmark updates.</p>
+
+        <div class="cards">
+          <article class="card">
+            <h3>Benchmark Report</h3>
+            <p class="price">Free <small>PDF · email required</small></p>
+            <ul>
+              <li>Full monetary potential analysis</li>
+              <li>Revenue models &amp; topic rankings</li>
+              <li>Author concentration &amp; timing insights</li>
+              <li>Print-ready PDF (33K+ article corpus)</li>
+            </ul>
+            <a href="#lead" class="btn btn-secondary">Get free PDF</a>
+          </article>
+
+          <article class="card">
+            <h3>Boost Playbook</h3>
+            <p class="price">$39 <small>one-time</small></p>
+            <ul>
+              <li>Everything in the free report</li>
+              <li>Notion boost checklist &amp; title patterns</li>
+              <li>Topic ROI worksheet (AI, productivity, dev)</li>
+              <li>Paywall &amp; word-count decision guide</li>
+            </ul>
+            <a href="#" class="btn btn-secondary" id="linkPlaybook" target="_blank" rel="noopener">Buy on Gumroad</a>
+          </article>
+
+          <article class="card featured">
+            <span class="badge">Recommended</span>
+            <h3>Boost Index Pro</h3>
+            <p class="price">$149 <small>/ year</small></p>
+            <ul>
+              <li>Boost Predictor (score vs corpus)</li>
+              <li>Monthly benchmark refresh</li>
+              <li>Topic &amp; tag opportunity rankings</li>
+              <li>Analytics dashboard access</li>
+              <li>Founding member: <strong>$99/yr</strong> (limited)</li>
+            </ul>
+            <a href="#" class="btn btn-primary" id="linkPro" target="_blank" rel="noopener">Join Pro — Gumroad</a>
+          </article>
+
+          <article class="card">
+            <h3>Article Audit</h3>
+            <p class="price">$299 <small>per article</small></p>
+            <ul>
+              <li>Pre-publish score vs 33K boosts</li>
+              <li>Title, length, topic, lock strategy</li>
+              <li>Written report + 15-min Loom</li>
+              <li>10 slots/month — async delivery</li>
+            </ul>
+            <a href="mailto:hello@example.com?subject=Boost%20Audit%20Request" class="btn btn-ghost" id="linkAudit">Request audit</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="lead">
+      <div class="container">
+        <h2 class="section-title">Get the free benchmark report</h2>
+        <p class="section-sub">Enter your email. We’ll send the download link to the 2026 Boost Benchmark PDF.</p>
+
+        <form class="lead-form" id="leadForm" action="#" method="POST">
+          <h3>2026 Medium Boost Benchmark</h3>
+          <p>64.8M reads · 33,189 boosts · monetization models included.</p>
+          <div class="form-row">
+            <input type="email" name="email" id="email" placeholder="you@email.com" required autocomplete="email">
+            <button type="submit" class="btn btn-primary">Send my PDF</button>
+          </div>
+          <p class="form-note">No spam. Unsubscribe anytime. We don’t sell your email.</p>
+          <p class="form-success" id="formSuccess" role="status"></p>
+        </form>
+
+        <p style="margin-top: 1.25rem;">
+          <a href="assets/report.pdf" class="btn btn-ghost" id="directPdf" download>
+            Direct PDF download
+          </a>
+          <span style="color: var(--muted); font-size: 0.85rem; margin-left: 0.5rem;">(skip email)</span>
+        </p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="container">
+        <h2 class="section-title">FAQ</h2>
+
+        <div class="faq-item">
+          <h4>Is this affiliated with Medium?</h4>
+          <p>No. Independent research built from publicly observable metadata and engagement fields. Not official earnings data.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Do you sell the raw database?</h4>
+          <p>No. We sell aggregates, benchmarks, scores, and analysis—not scraped article bodies or a downloadable dump.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Who is this for?</h4>
+          <p>Medium writers, founders doing content marketing, and agencies optimizing long-form in AI, productivity, and programming.</p>
+        </div>
+        <div class="faq-item">
+          <h4>What’s the refund policy?</h4>
+          <p>Playbook: 7-day refund via Gumroad. Pro: cancel anytime; annual plans prorated at our discretion.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>Boost Index</strong><br>
+        Data from boost_predictor · May 2026
+      </div>
+      <div class="hide-print">
+        <a href="#lead">Free report</a> ·
+        <a href="#" id="linkPlaybookFooter" target="_blank" rel="noopener">Playbook</a> ·
+        <a href="#" id="linkProFooter" target="_blank" rel="noopener">Pro</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

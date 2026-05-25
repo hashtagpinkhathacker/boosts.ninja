@@ -44,13 +44,13 @@ Log in to: `Cloudflare` first, then `Namecheap`.
 - [x] This means the Namecheap nameserver cutover portion of Phase 1 has already been completed successfully.
 - [x] The Cloudflare zone exists and opens successfully at `Cloudflare Dashboard → boosts.ninja → DNS → Records`.
 - [x] The current active DNS records visible in Cloudflare are:
-  - `A` → `boosts.ninja` → `76.76.21.21` → `DNS only`
-  - `CNAME` → `www` → `cname.vercel-dns-0.com` → `DNS only`
-  - `TXT` → `_vercel` → `vc-domain-verify=boosts.ninja,...` → `DNS only`
+  - `CNAME` -> `boosts.ninja` -> `boosts-ninja.pages.dev` -> `Proxied`
+  - `CNAME` -> `www` -> `boosts.ninja` -> `Proxied`
+
   - `NS` → `celeste.ns.cloudflare.com`
   - `NS` → `patrick.ns.cloudflare.com`
 - [x] This confirms Cloudflare is the active DNS source of truth and the zone records are present.
-- [x] It also confirms the site is currently wired for `Vercel`, not yet `Cloudflare Pages`, which is fine for Phase 1 and will be changed later only if you decide to move hosting in Phase 2.
+- [x] It also confirms the site is now wired for `Cloudflare Pages`, not `Vercel`, which matches the recommended hosting path in Phase 2.
 
 - [ ] Create a free Cloudflare account at [dash.cloudflare.com](https://dash.cloudflare.com/). This creates the control panel where Cloudflare will manage your DNS, SSL, CDN, analytics, and email routing.
 - [ ] In Cloudflare, go to `Dashboard → Add a domain` and enter `boosts.ninja`. You should see a field asking for your domain name and a button to continue. This starts Cloudflare's setup wizard for your domain.
@@ -131,6 +131,29 @@ Cloudflare Pages Free plan details verified at the time of writing:
 
 Log in to: `Cloudflare`, and if you choose Git deployment, also `GitHub`.
 
+### Current live status for Option A
+
+- [x] A Cloudflare Pages project named `boosts-ninja` already exists.
+- [x] The Pages project is connected to the GitHub repo `hashtagpinkhathacker/boosts.ninja`.
+- [x] The live Pages build settings used for the successful deploy were:
+  - Framework preset: `None`
+  - Build command: blank
+  - Build output directory: `landing`
+- [x] The Pages deployment completed successfully.
+- [x] The preview site is live at [https://boosts-ninja.pages.dev](https://boosts-ninja.pages.dev).
+- [x] The preview URL currently serves the correct landing page with the title `Boost Index — Medium Boost Intelligence`.
+- [x] The landing site has already been copied into `C:\Users\D\OneDrive\Documents\boosts.ninja\landing`.
+- [x] The report PDF has already been copied into `C:\Users\D\OneDrive\Documents\boosts.ninja\landing\assets\report.pdf`.
+- [x] The repo has already been committed and pushed to GitHub on branch `main`.
+- [x] The custom domain cutover is complete.
+- [x] As of `May 25, 2026`, `https://boosts.ninja` serves the landing page correctly from Cloudflare Pages.
+- [x] As of `May 25, 2026`, `https://www.boosts.ninja` resolves and redirects to `https://boosts.ninja/`.
+- [x] Public checks now show both the preview deployment and the production hostname wiring are healthy.
+
+Common operational note:
+
+- [x] If the Cloudflare dashboard visually fails to load the Pages project screen in the in-app browser, do not assume the deployment failed. Verify `https://boosts-ninja.pages.dev` directly first. In this setup, that check correctly proved the deployment was healthy even before the custom-domain and redirect work was fully cleaned up.
+
 - [ ] Open `Cloudflare Dashboard → Workers & Pages → Create application → Pages`. You should see choices to connect a Git provider or deploy directly. This is where Cloudflare creates the site that will serve your files.
 - [ ] Choose one deployment method:
   - `Connect to Git` if you want automatic deploys every time you push to GitHub.
@@ -150,6 +173,22 @@ Log in to: `Cloudflare`, and if you choose Git deployment, also `GitHub`.
 - [ ] Connect the custom domain in `Cloudflare Dashboard → Workers & Pages → <your Pages project> → Custom domains → Set up a domain`. Enter `boosts.ninja` first, and optionally `www.boosts.ninja` after that. This step tells Pages which real domain should point at your site.
 - [ ] Click `Activate domain` if Cloudflare shows that button. Cloudflare will automatically create the DNS records when the domain is already managed in the same Cloudflare account.
 
+After you click `Activate domain`, verify from PowerShell:
+
+```powershell
+nslookup boosts.ninja
+nslookup www.boosts.ninja
+```
+
+What should change:
+
+- [ ] `www.boosts.ninja` should stop resolving to `cname.vercel-dns-0.com`.
+- [ ] The old Vercel wiring should no longer be the active public route for `boosts.ninja`.
+
+If the output still points to Vercel after activation:
+
+- [ ] Return to `Cloudflare Dashboard -> boosts.ninja -> DNS -> Records` and confirm the old Vercel `A`, `CNAME`, and `_vercel` verification records were removed or replaced by the Pages setup flow.
+
 Expected result:
 
 - Your site loads at both the `*.pages.dev` URL and then at `https://boosts.ninja`.
@@ -159,6 +198,7 @@ Common failure modes:
 - The `*.pages.dev` site works, but `boosts.ninja` does not. Fix: check `Cloudflare -> DNS -> Records` and make sure the Pages domain records were created automatically.
 - Cloudflare says the custom domain is not active. Fix: confirm the nameservers are already pointing to Cloudflare and that the domain was added to the same Cloudflare account as the Pages project.
 - Your PDF link downloads a `404` page. Fix: confirm the file exists at `landing/assets/report.pdf`, not beside the landing folder or under a different filename.
+- `boosts.ninja` still serves Vercel even though `boosts-ninja.pages.dev` works. Fix: the custom-domain step was not completed yet, or the old Vercel DNS records are still active in `Cloudflare Dashboard -> boosts.ninja -> DNS -> Records`.
 
 ### Option B — Vercel (Alternative)
 
@@ -198,10 +238,18 @@ Log in to: `Cloudflare`.
 
 If you use Cloudflare Pages, SSL is provisioned automatically for the Pages domain and your custom domain. You still want to confirm the zone-level SSL settings below so all traffic is handled correctly.
 
-- [ ] Open `Cloudflare Dashboard → boosts.ninja → SSL/TLS → Overview` and set the encryption mode to `Full (strict)`. This means Cloudflare will only use HTTPS to reach the origin and will validate the certificate. It is the safest normal setting when your host supports HTTPS correctly.
-- [ ] Open `Cloudflare Dashboard → boosts.ninja → SSL/TLS → Edge Certificates` and enable `Always Use HTTPS`. This forces any old `http://` visit to redirect to `https://`, which protects users and avoids duplicate SEO URLs.
-- [ ] In the same `Edge Certificates` area, enable `Automatic HTTPS Rewrites`. This helps fix mixed-content problems by rewriting old `http://` asset links to `https://` when secure versions exist.
-- [ ] In `Cloudflare Dashboard → boosts.ninja → SSL/TLS → Edge Certificates`, enable `HTTP Strict Transport Security (HSTS)` only after the site is working correctly on HTTPS everywhere. HSTS tells browsers to always use HTTPS for your domain, even if a user types `http://` manually.
+### Current live status for Phase 3
+
+- [x] `https://boosts-ninja.pages.dev` is healthy and serves the correct landing page over HTTPS.
+- [x] `http://boosts.ninja` now redirects to `https://boosts.ninja/` with a `301` response from `cloudflare`.
+- [x] `https://boosts.ninja` now serves the landing page correctly from Cloudflare Pages.
+- [x] `https://www.boosts.ninja` now resolves and redirects to `https://boosts.ninja/`.
+- [x] `HTTP Strict Transport Security (HSTS)` has been enabled after the HTTPS hostname and redirect path were working correctly.
+
+- [x] Open `Cloudflare Dashboard -> boosts.ninja -> SSL/TLS -> Overview` and set the encryption mode to `Full (strict)`. This means Cloudflare will only use HTTPS to reach the origin and will validate the certificate. It is the safest normal setting when your host supports HTTPS correctly.
+- [x] Open `Cloudflare Dashboard -> boosts.ninja -> SSL/TLS -> Edge Certificates` and enable `Always Use HTTPS`. This forces any old `http://` visit to redirect to `https://`, which protects users and avoids duplicate SEO URLs.
+- [x] In the same `Edge Certificates` area, enable `Automatic HTTPS Rewrites`. This helps fix mixed-content problems by rewriting old `http://` asset links to `https://` when secure versions exist.
+- [x] In `Cloudflare Dashboard -> boosts.ninja -> SSL/TLS -> Edge Certificates`, enable `HTTP Strict Transport Security (HSTS)` only after the site is working correctly on HTTPS everywhere. HSTS tells browsers to always use HTTPS for your domain, even if a user types `http://` manually.
 
 ⚠️ HSTS warning:
 
@@ -209,17 +257,18 @@ If you use Cloudflare Pages, SSL is provisioned automatically for the Pages doma
 
 ### Set the www redirect
 
-- [ ] Go to `Cloudflare Dashboard → boosts.ninja → Rules → Redirect Rules → Create rule`.
-- [ ] Name the rule something clear like `www to apex`.
-- [ ] Set the condition to `If incoming requests match... -> Hostname -> equals -> www.boosts.ninja`.
-- [ ] Set the action to `Dynamic Redirect`.
-- [ ] Set the destination URL to:
+- [x] Go to `Cloudflare Dashboard -> boosts.ninja -> Rules -> Redirect Rules -> Create rule`.
+- [x] Name the rule something clear like `www to apex`.
+- [x] Set the condition to `If incoming requests match... -> Hostname -> equals -> www.boosts.ninja`.
+- [x] Set the action to `Dynamic Redirect`.
+- [x] Set the destination URL to:
 
 ```text
 https://boosts.ninja${uri.path}
 ```
 
-- [ ] Set the status code to `301 - Permanent Redirect`. A `301` tells browsers and search engines the move is permanent, so they update bookmarks and indexing. A `302` is temporary and should only be used when you expect the destination to change later.
+- [x] Set the status code to `301 - Permanent Redirect`. A `301` tells browsers and search engines the move is permanent, so they update bookmarks and indexing. A `302` is temporary and should only be used when you expect the destination to change later.
+- [x] The live Cloudflare rule is deployed as `Redirect from WWW to root [Template]`, which is functionally equivalent for this setup and now sends `https://www.boosts.ninja` to `https://boosts.ninja/`.
 
 Common failure modes:
 
@@ -240,7 +289,17 @@ The site repo you are preparing in this workspace is currently:
 
 `C:\Users\D\OneDrive\Documents\boosts.ninja`
 
-That repo is a fresh Git repository with no commits yet, so the clean path is to copy the landing site into this repo, commit it, push it to GitHub, and connect that repo to Cloudflare Pages.
+That repo is already live on GitHub and connected to Cloudflare Pages, so Phase 4 is mostly about verifying the deployed code, confirming the static assets are present, and tightening the launch configuration.
+
+### Current live status for Phase 4
+
+- [x] The repo already contains the deployed `landing` site.
+- [x] `landing/assets/report.pdf` already exists in the path the site expects.
+- [x] The GitHub remote is already connected at `https://github.com/hashtagpinkhathacker/boosts.ninja.git`.
+- [x] Branch `main` already contains the initial landing-site commit `beb0b26` with the message `feat: add landing site`.
+- [x] Cloudflare Pages is already serving the repo at `https://boosts-ninja.pages.dev` and the production host at `https://boosts.ninja`.
+- [x] `landing/config.js` now defaults to a safe direct-download mode when no form endpoint or paid-product URLs are configured.
+- [ ] Add real `FORM_ENDPOINT`, Gumroad URLs, and `AUDIT_EMAIL` later when you are ready to turn on lead capture and paid offers.
 
 ### Option 1 — Existing static landing (Recommended)
 
@@ -623,3 +682,4 @@ Common failure mode:
 - [Cloudflare Automatic HTTPS Rewrites](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/automatic-https-rewrites/)
 - [Cloudflare SSL/TLS additional options](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/)
 - [Cloudflare Email Routing overview](https://developers.cloudflare.com/email-routing/)
+

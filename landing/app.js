@@ -5,23 +5,54 @@
     return document.getElementById(id);
   }
 
-  function applyLinks() {
-    const playbook = cfg.GUMROAD_PLAYBOOK || '#';
-    const pro = cfg.GUMROAD_PRO || cfg.GUMROAD_PRO_FOUNDING || '#';
-    const audit = cfg.AUDIT_EMAIL
-      ? 'mailto:' + cfg.AUDIT_EMAIL + '?subject=Boost%20Audit%20Request'
-      : 'mailto:hello@example.com?subject=Boost%20Audit%20Request';
+  function normalizeUrl(value) {
+    return (value || '').trim();
+  }
 
-    ['linkPlaybook', 'linkPlaybookFooter'].forEach(function (id) {
+  function disableLink(el, fallbackText) {
+    if (!el) return;
+    el.removeAttribute('href');
+    el.removeAttribute('target');
+    el.removeAttribute('rel');
+    el.setAttribute('aria-disabled', 'true');
+    el.setAttribute('tabindex', '-1');
+    el.classList.add('is-disabled');
+    if (fallbackText) el.textContent = fallbackText;
+  }
+
+  function enableLink(el, href) {
+    if (!el || !href) return;
+    el.href = href;
+    el.removeAttribute('aria-disabled');
+    el.removeAttribute('tabindex');
+    el.classList.remove('is-disabled');
+  }
+
+  function applyLinkGroup(ids, href, fallbackText) {
+    ids.forEach(function (id) {
       const el = $(id);
-      if (el) el.href = playbook;
+      if (!el) return;
+      if (href) {
+        enableLink(el, href);
+      } else {
+        disableLink(el, fallbackText);
+      }
     });
-    ['linkPro', 'linkProFooter'].forEach(function (id) {
-      const el = $(id);
-      if (el) el.href = pro;
-    });
-    const auditEl = $('linkAudit');
-    if (auditEl) auditEl.href = audit;
+  }
+
+  function applyLinks() {
+    const playbook = normalizeUrl(cfg.GUMROAD_PLAYBOOK);
+    const pro = normalizeUrl(cfg.GUMROAD_PRO || cfg.GUMROAD_PRO_FOUNDING);
+    const auditEmail = normalizeUrl(cfg.AUDIT_EMAIL);
+    const audit = auditEmail
+      ? 'mailto:' + auditEmail + '?subject=Boost%20Audit%20Request'
+      : '';
+
+    applyLinkGroup(['linkPlaybook'], playbook, 'Coming soon');
+    applyLinkGroup(['linkPlaybookFooter'], playbook, null);
+    applyLinkGroup(['linkPro'], pro, 'Coming soon');
+    applyLinkGroup(['linkProFooter'], pro, null);
+    applyLinkGroup(['linkAudit'], audit, 'Contact coming soon');
 
     const pdf = $('directPdf');
     if (pdf && cfg.PDF_PATH) pdf.href = cfg.PDF_PATH;
@@ -34,7 +65,7 @@
   }
 
   function openPdf() {
-    const path = cfg.PDF_PATH || '../Boosted_Articles_Monetary_Report.pdf';
+    const path = cfg.PDF_PATH || 'assets/report.pdf';
     window.open(path, '_blank', 'noopener');
   }
 
@@ -42,11 +73,11 @@
     e.preventDefault();
     const email = $('email').value.trim();
     const success = $('formSuccess');
-    const endpoint = (cfg.FORM_ENDPOINT || '').trim();
+    const endpoint = normalizeUrl(cfg.FORM_ENDPOINT);
 
     if (!endpoint) {
       if (success) {
-        success.textContent = 'Opening your PDF… (configure FORM_ENDPOINT in config.js to capture emails).';
+        success.textContent = 'Opening your PDF now.';
         success.classList.add('visible');
       }
       openPdf();
@@ -57,7 +88,7 @@
     const btn = form.querySelector('button[type="submit"]');
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'Sending…';
+      btn.textContent = 'Sending...';
     }
 
     fetch(endpoint, {
@@ -75,7 +106,7 @@
       .then(function (res) {
         if (!res.ok) throw new Error('Form submit failed');
         if (success) {
-          success.textContent = 'Check your inbox — and your PDF is opening now.';
+          success.textContent = 'Check your inbox and your PDF is opening now.';
           success.classList.add('visible');
         }
         openPdf();

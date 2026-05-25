@@ -1,24 +1,22 @@
 /**
- * Landing page configuration — edit before deploy.
+ * Landing page configuration.
  *
- * FORM_ENDPOINT:
- *   Formspree: https://formspree.io/f/YOUR_FORM_ID
- *   Getform:   https://getform.io/f/YOUR_ID
- *   Beehiiv:   use their embed instead of this form
- *
- * Leave empty to use local-only mode (PDF opens directly, no email POST).
+ * Safe public defaults:
+ * - Leave FORM_ENDPOINT empty to open the PDF directly without email capture.
+ * - Leave paid product URLs empty until those offers are live.
+ * - Leave AUDIT_EMAIL empty until you are ready to accept audit requests.
  */
 window.BOOST_INDEX_CONFIG = {
   FORM_ENDPOINT: '',
 
-  GUMROAD_PLAYBOOK: 'https://gumroad.com/l/YOUR-PLAYBOOK',
-  GUMROAD_PRO: 'https://gumroad.com/l/YOUR-PRO',
-  GUMROAD_PRO_FOUNDING: 'https://gumroad.com/l/YOUR-PRO-FOUNDING',
+  GUMROAD_PLAYBOOK: '',
+  GUMROAD_PRO: '',
+  GUMROAD_PRO_FOUNDING: '',
 
-  AUDIT_EMAIL: 'hello@yourdomain.com',
+  AUDIT_EMAIL: '',
 
-  // Netlify/GitHub Pages: copy PDF to landing/assets/report.pdf
+  // Static-host friendly path for Cloudflare Pages / Netlify / GitHub Pages.
   PDF_PATH: 'assets/report.pdf',
 
-  SHOW_CONFIG_BANNER: true,
+  SHOW_CONFIG_BANNER: false,
 };

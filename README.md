@@ -285,6 +285,10 @@ The printable source report that already exists today is:
 
 `C:\Users\D\medium-sql-data_scraper\boost_predictor\report_boosted_articles.html`
 
+The downloadable PDF currently used by the landing page is the updated watermarked version at:
+
+`C:\Users\D\medium-sql-data_scraper\boost_predictor\boosts.ninja\landing\assets\report.pdf`
+
 The site repo you are preparing in this workspace is currently:
 
 `C:\Users\D\OneDrive\Documents\boosts.ninja`
@@ -294,7 +298,7 @@ That repo is already live on GitHub and connected to Cloudflare Pages, so Phase 
 ### Current live status for Phase 4
 
 - [x] The repo already contains the deployed `landing` site.
-- [x] `landing/assets/report.pdf` already exists in the path the site expects.
+- [x] `landing/assets/report.pdf` already exists in the path the site expects and currently matches the updated watermarked PDF.
 - [x] The GitHub remote is already connected at `https://github.com/hashtagpinkhathacker/boosts.ninja.git`.
 - [x] Branch `main` already contains the initial landing-site commit `beb0b26` with the message `feat: add landing site`.
 - [x] Cloudflare Pages is already serving the repo at `https://boosts-ninja.pages.dev` and the production host at `https://boosts.ninja`.
@@ -387,10 +391,10 @@ d-----         <date>                            assets
 -a----         <date>                         ... thank-you.html
 ```
 
-- [ ] Copy the report PDF into the exact path the landing page expects:
+- [ ] Copy the report PDF into the exact path the landing page expects. Use the current watermarked PDF as the source file:
 
 ```powershell
-Copy-Item -Path "C:\Users\D\medium-sql-data_scraper\boost_predictor\Boosted_Articles_Monetary_Report.pdf" -Destination ".\landing\assets\report.pdf" -Force
+Copy-Item -Path "C:\Users\D\medium-sql-data_scraper\boost_predictor\boosts.ninja\landing\assets\report.pdf" -Destination ".\landing\assets\report.pdf" -Force
 ```
 
 Expected output:
@@ -414,6 +418,8 @@ Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
 -a----         <date>                         ... report.pdf
 ```
+
+What happened: this copies the current watermarked PDF into the exact published path the landing page links to.
 
 - [ ] Edit `landing\config.js` before the first real launch. Replace the placeholder form endpoint, Gumroad links, and audit email with your real values. This matters because the page can look finished while its forms and purchase buttons are still pointing at placeholders.
 - [ ] Preview the landing page locally from the repo root:
@@ -657,21 +663,344 @@ Common failure mode:
 
 - Cloudflare builds the repo but publishes a blank site. Fix: check that the build output directory is exactly `landing`, not blank and not `landing/` plus an extra nested path.
 
-## 05 - Email Forwarding
+## 05 — Email Forwarding — FREE
 
-- [ ] Reserved for the next phase. This will cover Cloudflare Email Routing, `MX` records (mail exchange records that tell email where to go), `SPF` records (sender policy rules that say which servers may send mail for your domain), and `DKIM` records (cryptographic signatures that help receiving inboxes trust your email).
+This phase sets up free inbound email forwarding for your domain through Cloudflare. It matters because it lets you use addresses like `hello@boosts.ninja` without paying for a full mailbox, while still keeping the website stack on the free tier.
 
-## 06 - Analytics
+Log in to: `Cloudflare`, and keep access to the destination inbox you want Cloudflare to forward mail into.
 
-- [ ] Reserved for the next phase. This will cover Cloudflare Web Analytics and what to verify after the tracking snippet is live.
+Important concept before you start:
 
-## 07 - SEO
+- `MX` records (mail exchange records) tell the internet which mail servers should receive inbound email for your domain.
+- `SPF` records (Sender Policy Framework) are DNS `TXT` records that say which servers are allowed to send or route mail for your domain.
+- `DKIM` records (DomainKeys Identified Mail) are DNS `TXT` records containing cryptographic keys that help receiving inboxes trust the email path.
+- Cloudflare Email Routing is forwarding only. It forwards incoming mail to another inbox, but it does not give you a normal SMTP mailbox for sending outbound mail as `hello@boosts.ninja`.
 
-- [ ] Reserved for the next phase. This will cover Google Search Console verification, sitemap submission, and indexing checks.
+⚠️ Order warning:
 
-## 08 - Maintenance
+- If you already use another mail provider on `boosts.ninja`, stop and audit the existing `MX` records first. Cloudflare Email Routing cannot be enabled cleanly if another active inbound mail service is still using the same domain.
 
-- [ ] Reserved for the next phase. This will cover ongoing updates, backups, and safe release habits.
+### Recommended setup: `hello@boosts.ninja`
+
+1. [ ] Decide the real destination inbox first, for example `yourname@gmail.com` or `yourname@outlook.com`. This is the inbox where Cloudflare will forward messages sent to `hello@boosts.ninja`.
+   Verify it worked: sign in to that inbox now and confirm you can receive mail there, because Cloudflare will immediately send a verification message to it.
+
+2. [ ] In `Cloudflare`, open **Cloudflare Dashboard → boosts.ninja → Email → Email Routing**. If this is the first time, Cloudflare may open a setup wizard instead of the normal rules screen. This is the control panel where forwarding rules and email DNS records are managed.
+   Verify it worked: you should see either an onboarding button like `Enable Email Routing` or a page containing `Routing rules`, `Destination addresses`, and `Settings`.
+
+3. [ ] Start the setup flow and let Cloudflare review the DNS records it plans to add. Cloudflare will add the `MX`, `SPF`, and `DKIM` records required for forwarding to work. This matters because forwarding cannot function until those DNS records exist.
+   Verify it worked: the wizard should show that Cloudflare is preparing email-related DNS records for `boosts.ninja`.
+
+4. [ ] Create the forwarding rule for your public inbox. In **Cloudflare Dashboard → boosts.ninja → Email → Email Routing → Routing rules → Create address**, enter:
+   - Custom address: `hello`
+   - Destination address: your real inbox, for example `yourname@gmail.com`
+   What happened: this creates the rule that maps `hello@boosts.ninja` to your real inbox.
+   Verify it worked: the rule should appear in the routing rules list with the destination address shown.
+
+5. [ ] Open the destination inbox and click the verification link Cloudflare sends you. Cloudflare will not activate forwarding until the destination inbox is proven to belong to you.
+   Verify it worked: when you return to **Cloudflare Dashboard → boosts.ninja → Email → Email Routing**, the destination address should show `Verified`.
+
+6. [ ] Finish onboarding by allowing Cloudflare to add the required email DNS records. In the wizard, this usually appears as **Add records and finish** or **Add records and enable**. This step writes the live DNS records that make forwarding work globally.
+   Verify it worked: Cloudflare should stop showing the incomplete-onboarding prompt and instead show Email Routing as enabled.
+
+7. [ ] Confirm the new `MX` records exist from PowerShell:
+
+```powershell
+nslookup -type=MX boosts.ninja 1.1.1.1
+```
+
+   Expected output should show Cloudflare-managed `MX` records for the domain, for example targets under a Cloudflare-controlled mail-routing hostname.
+
+```text
+Server:  one.one.one.one
+Address:  1.1.1.1
+
+boosts.ninja    MX preference = <number>, mail exchanger = <cloudflare-mail-hostname>
+boosts.ninja    MX preference = <number>, mail exchanger = <cloudflare-mail-hostname>
+```
+
+   If it looks wrong:
+   - If you still see old mail-provider `MX` records, the onboarding step did not finish or another email provider is still active.
+   - If the command returns no `MX` records, wait `5-30 minutes` for propagation and check **Cloudflare Dashboard → boosts.ninja → DNS → Records**.
+
+8. [ ] Confirm the root `SPF` record exists:
+
+```powershell
+nslookup -type=TXT boosts.ninja 1.1.1.1
+```
+
+   Expected output should include a TXT value allowing Cloudflare's mail-routing service, typically a string that includes `_spf.mx.cloudflare.net`.
+
+```text
+Server:  one.one.one.one
+Address:  1.1.1.1
+
+boosts.ninja    text =
+
+        "v=spf1 include:_spf.mx.cloudflare.net ~all"
+```
+
+   What happened: this SPF record tells receiving servers that Cloudflare's routing system is authorized in this email path.
+   If it looks wrong: if the TXT record is missing, reopen **Cloudflare Dashboard → boosts.ninja → Email → Email Routing** and look for a DNS repair or `Add records` prompt.
+
+9. [ ] Confirm the `DKIM` record exists. Cloudflare creates this automatically, but the selector name can vary by account and product version, so use the exact selector shown in **Cloudflare Dashboard → boosts.ninja → DNS → Records**.
+   Verify it from PowerShell with the selector Cloudflare shows, for example:
+
+```powershell
+nslookup -type=TXT cf2024-1._domainkey.boosts.ninja 1.1.1.1
+```
+
+   Expected output should show a long TXT value beginning with something like `v=DKIM1;`.
+   What happened: this publishes the DKIM public key that helps receiving mail systems trust the forwarded path.
+
+10. [ ] Send a real end-to-end test to `hello@boosts.ninja` from a different email account than the destination inbox. This matters because some providers suppress what they think is a duplicate self-sent message.
+    Verify it worked: the test message should arrive in the destination inbox after a short delay. If it does not, check **Cloudflare Dashboard → boosts.ninja → Email → Email Routing** for rule status and DNS warnings.
+
+11. [ ] Decide how replies should work. Because Cloudflare Email Routing is forwarding only, replying directly from the destination inbox will usually send from the destination inbox's address, not from `hello@boosts.ninja`.
+    Verify it worked: send yourself a reply test and look at the actual `From:` address that the recipient sees.
+
+⚠️ Common pitfalls:
+
+- Cloudflare Email Routing does not replace a full mailbox provider. It forwards inbound mail only.
+- If another email service is already using your `MX` records and you do not remove or replace those records, Email Routing will not enable correctly.
+- If you link the same custom address to multiple destinations, Cloudflare processes only the most recent rule for that custom address.
+- If the destination inbox verification email expires, delete and recreate the destination address entry, then verify again.
+
+## 06 — Analytics — FREE
+
+This phase adds traffic visibility and search visibility without adding monthly cost. It matters because you need to know whether people can find the site, how they use it, and whether Google is indexing it correctly.
+
+### Current live status for Phase 6
+
+- [x] Cloudflare Web Analytics is already active on the live site. The Cloudflare Insights beacon is being injected in production for `https://boosts.ninja`.
+- [x] The site now includes `robots.txt` at `/robots.txt`.
+- [x] The site now includes `sitemap.xml` at `/sitemap.xml`.
+- [ ] Google Search Console verification still requires a signed-in Google session, so the DNS ownership-verification click path must be finished manually in your Google account.
+
+### Cloudflare Web Analytics
+
+Primary recommendation for this Pages project: use Cloudflare's one-click Pages integration first, because it is simpler and less error-prone than manually pasting the beacon.
+
+1. [ ] Log in to `Cloudflare` and open **Cloudflare Dashboard → Workers & Pages → boosts-ninja → Metrics → Enable under Web Analytics**. You should see a Web Analytics panel with an enable button. This turns on Cloudflare's privacy-first analytics for the Pages project and automatically injects the beacon on the next deployment.
+   Verify it worked: after the next deployment, load the site a few times and return to **Cloudflare Dashboard → Analytics & Logs → Web Analytics**. You should start seeing a site card for `boosts.ninja`, though the charts can take a few minutes to populate.
+
+2. [ ] If the one-click Pages integration is unavailable or does not work, use the manual setup path instead: **Cloudflare Dashboard → Analytics & Logs → Web Analytics → Add a site**. Enter `boosts.ninja`, finish the hostname setup, and copy the JavaScript beacon Cloudflare gives you. This creates a dedicated Web Analytics site entry and lets you install the tracking snippet yourself.
+   Verify it worked: after saving the hostname, Cloudflare should show a management screen for `boosts.ninja` and a snippet containing a `data-cf-beacon` token.
+
+3. [ ] If you need manual installation, add this snippet to the `<head>` or just before the closing `</body>` tag on every HTML page:
+
+```html
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+  data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+```
+
+   What happened: this snippet sends privacy-first pageview and performance data to Cloudflare Web Analytics. Cloudflare states that Web Analytics does not collect or use your visitors' personal data, so it does not require a cookie banner for analytics alone.
+   Verify it worked: deploy the updated files, visit the site, then open **Cloudflare Dashboard → Analytics & Logs → Web Analytics → boosts.ninja**. The first pageviews usually appear within a few minutes.
+
+⚠️ Common pitfall:
+
+- If the site is already proxied through Cloudflare Pages, auto-injection may be enough. Do not paste a second manual snippet unless you actually need it, or you may double-count visits.
+- If your HTML is not valid or your origin sends `Cache-Control: public, no-transform`, Cloudflare may not be able to auto-inject the beacon. In that case, use the manual snippet installation.
+
+### Google Search Console
+
+Google Search Console is free and gives you search-performance data, indexing status, crawl errors, and mobile-usability reports. It matters because it tells you whether Google can actually discover and trust `boosts.ninja`.
+
+1. [ ] Log in to `Google` and open **Google Search Console → Add property**. Enter `boosts.ninja` as a `Domain property` and choose `DNS verification`. A domain property covers the root domain plus subdomains such as `www.boosts.ninja`.
+   Verify it worked: Google will show you a TXT verification value that starts with `google-site-verification=`.
+
+2. [ ] Log in to `Cloudflare` and open **Cloudflare Dashboard → boosts.ninja → DNS → Records → Add record**. Add a `TXT` record for the root domain using the exact verification value Google gave you. A `TXT` record is a DNS record used to publish text values such as ownership verification strings.
+   Verify it worked from PowerShell:
+
+```powershell
+nslookup -type=TXT boosts.ninja 1.1.1.1
+```
+
+   Expected output:
+
+```text
+Server:  one.one.one.one
+Address:  1.1.1.1
+
+boosts.ninja    text =
+
+        "google-site-verification=YOUR_TOKEN"
+```
+
+   If it looks wrong: if the TXT record does not appear yet, wait `5-30 minutes` and try again. Global DNS propagation can take longer even when Cloudflare saved the record immediately.
+
+3. [ ] Return to **Google Search Console → Verify** and wait for Google to confirm ownership. This tells Google that you control the domain and unlocks Search Console reports for the property.
+   Verify it worked: Google should show a success message and open the new property dashboard.
+
+4. [ ] Submit your sitemap in **Google Search Console → Indexing → Sitemaps** using:
+
+```text
+https://boosts.ninja/sitemap.xml
+```
+
+   What happened: a sitemap is a machine-readable list of URLs you want search engines to crawl. Submitting it helps Google discover pages faster and report crawl issues more clearly.
+   Verify it worked: Search Console should show the sitemap as `Success` or `Pending`. If it shows an error, open `https://boosts.ninja/sitemap.xml` in a browser and confirm the file exists and returns `200 OK`.
+
+⚠️ Common pitfall:
+
+- DNS verification can take from a few minutes to a few hours. Do not delete the TXT record after verification, because Google may re-check ownership later.
+- If `https://boosts.ninja/sitemap.xml` does not exist yet, Search Console cannot accept it. Create the sitemap before marking this step complete.
+
+## 07 — Launch Checklist — FREE
+
+This phase is the go-live gate. It matters because a site can look correct in one browser tab while still failing on HTTPS, mobile layout, search-engine crawling, or security headers.
+
+1. [ ] Confirm `https://boosts.ninja` loads with a padlock icon. This verifies that SSL/TLS is active and the certificate is trusted by the browser.
+   Verify it worked: open the homepage in a browser and confirm the padlock appears in the address bar. If it does not, re-check **Cloudflare Dashboard → boosts.ninja → SSL/TLS → Overview** and **Edge Certificates**.
+
+2. [ ] Confirm `http://boosts.ninja` redirects to HTTPS automatically.
+   Verify it from PowerShell:
+
+```powershell
+curl.exe -I http://boosts.ninja
+```
+
+   Expected output should include:
+
+```text
+HTTP/1.1 301 Moved Permanently
+location: https://boosts.ninja/
+```
+
+   If it looks wrong: if you get `200 OK` over plain HTTP, re-check **Cloudflare Dashboard → boosts.ninja → SSL/TLS → Edge Certificates → Always Use HTTPS**.
+
+3. [ ] Confirm `https://www.boosts.ninja` redirects to the non-`www` version, or intentionally the other way around if you choose `www` as canonical.
+   Verify it from PowerShell:
+
+```powershell
+curl.exe -I https://www.boosts.ninja
+```
+
+   Expected output should include a `301` redirect to `https://boosts.ninja/`.
+   If it looks wrong: re-check **Cloudflare Dashboard → boosts.ninja → Rules → Redirect Rules** and confirm the redirect rule is active.
+
+4. [ ] Confirm the mobile layout is responsive and usable. This means text stays readable, buttons are tappable, and no key content overflows off-screen.
+   Verify it worked: open the site in a mobile browser or use device emulation in browser developer tools. Test the navigation, pricing cards, lead form, and direct PDF button.
+
+5. [ ] Run [PageSpeed Insights](https://pagespeed.web.dev/) against `https://boosts.ninja` and confirm the performance score is `90+` on mobile. This matters because Core Web Vitals and page speed affect user experience and can affect search visibility.
+   Verify it worked: the report should show the performance score along with any image, CSS, or script issues to fix.
+
+6. [ ] Run [Security Headers](https://securityheaders.com/) against `https://boosts.ninja` and confirm there are no red warnings. This checks whether the site is missing important browser-side security headers.
+   Verify it worked: the report should not show obvious missing-header failures in red. If it does, review Cloudflare response headers and consider adding a security-header rule later.
+
+7. [ ] Send a real test email to `hello@boosts.ninja` after Phase 05 is configured. This confirms Email Routing, `MX` records, SPF, and DKIM are all functioning together.
+   Verify it worked: the message should arrive at the configured destination inbox, and the inbox should show the sender-verification flow has already been completed.
+
+8. [ ] Confirm the analytics script is firing. This proves your launch metrics will exist from day one instead of starting after traffic already arrives.
+   Verify it worked: visit the site a few times, then check **Cloudflare Dashboard → Analytics & Logs → Web Analytics → boosts.ninja** for pageviews and performance data.
+
+9. [ ] Confirm `robots.txt` exists at `https://boosts.ninja/robots.txt`. A `robots.txt` file tells search-engine crawlers which paths they are allowed to crawl.
+   Verify it from PowerShell:
+
+```powershell
+curl.exe -I https://boosts.ninja/robots.txt
+```
+
+   Expected output should include `HTTP/1.1 200 OK`.
+   If it looks wrong: add a real `robots.txt` file to the published site before launch.
+
+10. [ ] Confirm `sitemap.xml` exists at `https://boosts.ninja/sitemap.xml`.
+    Verify it from PowerShell:
+
+```powershell
+curl.exe -I https://boosts.ninja/sitemap.xml
+```
+
+    Expected output should include `HTTP/1.1 200 OK`.
+    If it looks wrong: generate the sitemap file and deploy it before submitting the URL in Search Console.
+
+11. [ ] Confirm a favicon is set. A favicon is the small icon browsers show in tabs, bookmarks, and mobile homescreen shortcuts.
+    Verify it worked: open the site in a browser tab and confirm the tab icon is not the generic blank icon.
+
+12. [ ] Confirm Open Graph meta tags are present for social sharing previews. Open Graph tags control the title, description, and preview image shown when someone shares your page on platforms like X, Slack, Discord, and Facebook.
+    Verify it from PowerShell:
+
+```powershell
+curl.exe https://boosts.ninja | Select-String -Pattern 'property="og:|name="twitter:|rel="icon"'
+```
+
+    Expected output should show at least one favicon line and multiple social-sharing meta tags.
+    If it looks wrong: add `og:title`, `og:description`, `og:image`, and `twitter:card` tags to the `<head>` before launch.
+
+⚠️ Common pitfall:
+
+- Do not mark the launch checklist complete just because the homepage loads on your own machine. The important checks are redirects, search files, mobile layout, analytics, and share-preview metadata.
+
+## 08 — Ongoing Maintenance — FREE
+
+This phase keeps the site fast, renewed, monitored, and secure after launch. It matters because static sites are low-maintenance, but they are not zero-maintenance.
+
+### Cloudflare performance tweaks
+
+1. [ ] Log in to `Cloudflare` and open **Cloudflare Dashboard → boosts.ninja → Speed → Optimization**. Enable `Auto Minify` for `JavaScript`, `CSS`, and `HTML`. Minification removes unnecessary whitespace and comments so browsers download smaller files faster.
+   Verify it worked: save the setting, then inspect the optimization page again and confirm all three toggles remain enabled.
+
+2. [ ] In the same screen, enable `Brotli` compression. Brotli compresses text assets such as HTML, CSS, and JavaScript before they travel across the network, which improves load time.
+   Verify it worked: revisit the setting after save and confirm the toggle remains enabled.
+
+3. [ ] Open **Cloudflare Dashboard → boosts.ninja → Caching → Configuration** and set `Browser Cache TTL` to `1 month`. Browser Cache TTL tells visitors' browsers how long they may reuse static files before asking the server for them again.
+   Verify it worked: the selected TTL should remain visible after save.
+
+4. [ ] Open **Cloudflare Dashboard → boosts.ninja → Rules → Cache Rules** and create a rule that caches static assets aggressively. Use asset-like paths such as `/assets/*`, `*.css`, `*.js`, and other immutable static files. This keeps repeat visits fast without risking stale HTML.
+   Verify it worked: the rule should appear in the Cache Rules list and be enabled.
+
+⚠️ Common pitfall:
+
+- Do not use `Cache everything` on HTML pages or form endpoints unless you fully understand the consequences. It is safe for static assets, but unsafe caching rules can cause stale pages or broken form behavior.
+
+### Domain renewal
+
+5. [ ] Log in to `Namecheap` and open **Namecheap Dashboard → Domain List → Manage boosts.ninja → Domain**. Confirm `Auto-Renew` is enabled. This prevents the domain from expiring just because one renewal email was missed.
+   Verify it worked: the domain management page should explicitly show auto-renew as enabled.
+
+6. [ ] Note the expected renewal cost and timing: `.ninja` domains commonly renew around `$30–35/year`, but always confirm the exact current price in your Namecheap account before the renewal date.
+   Verify it worked: the renewal section in Namecheap should show the next billing date and price.
+
+7. [ ] Create a calendar reminder for `60 days before expiry`. This gives you time to fix payment problems or registrar-email issues before the domain is at risk.
+   Verify it worked: confirm the event exists in your calendar with at least one alert.
+
+8. [ ] Keep the email address on the Namecheap account current. Registrar warnings and renewal failures are only useful if they go to an inbox you actually read.
+   Verify it worked: review the account profile and confirm the notification email is active and accessible.
+
+### Security monitoring
+
+9. [ ] Open **Cloudflare Dashboard → boosts.ninja → Security → Events** periodically and review unusual spikes, blocked requests, and suspicious bot traffic. This helps you notice scraping, brute force attempts, or misconfigured rules early.
+   Verify it worked: you should be able to see recent event data and filter by event type or date.
+
+10. [ ] If you ever see a suspicious traffic spike or active abuse event, enable `Under Attack Mode` at **Cloudflare Dashboard → boosts.ninja → Security → Settings**. This adds an interstitial challenge to filter malicious traffic before it reaches the site.
+    Verify it worked: the security settings page should show the mode as enabled. Turn it off after the incident ends so normal visitors are not inconvenienced longer than necessary.
+
+11. [ ] Run dependency-security checks regularly if the repo grows beyond static HTML/CSS/JS. For Node-based projects, use:
+
+```powershell
+npm audit
+npm outdated
+```
+
+    Expected output:
+
+```text
+found 0 vulnerabilities
+```
+
+    or a list of outdated packages and advisories if action is needed.
+    If it looks wrong: if this specific static repo has no `package.json`, that is normal. Run these commands only in subprojects that actually use npm packages.
+
+### Free growth tools
+
+12. [ ] Consider a free uptime monitor such as [Better Stack Uptime](https://betterstack.com/better-uptime). Their public pricing page currently advertises a free tier with `10 monitors and heartbeats` plus `1 status page`, which is enough for a simple launch.
+    Verify it worked: after setup, the monitor dashboard should show `https://boosts.ninja` being checked successfully at the configured interval.
+
+13. [ ] Consider [Web3Forms](https://web3forms.com/) if you want a simple hosted contact-form backend. Their docs currently advertise `250 free submissions per month`, which is a low-friction fit for a lightweight marketing site.
+    Verify it worked: submit a test form and confirm the message reaches the configured inbox or webhook target.
+
+14. [ ] Consider [Decap CMS](https://decapcms.org/) if you want Git-based content editing later without adding a paid CMS. This is useful when the site grows beyond a single static landing page and you want non-technical edits through a UI.
+    Verify it worked: after setup, you should be able to create or edit content and see those changes committed back into Git.
 
 ## Sources checked for current Cloudflare details
 
@@ -682,4 +1011,34 @@ Common failure mode:
 - [Cloudflare Automatic HTTPS Rewrites](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/automatic-https-rewrites/)
 - [Cloudflare SSL/TLS additional options](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/)
 - [Cloudflare Email Routing overview](https://developers.cloudflare.com/email-routing/)
+- [Cloudflare Email Routing get started](https://developers.cloudflare.com/email-routing/get-started/)
+- [Cloudflare Email Routing enablement](https://developers.cloudflare.com/email-routing/get-started/enable-email-routing/)
+- [Cloudflare Email Routing rules and addresses](https://developers.cloudflare.com/email-routing/setup/email-routing-addresses/)
+- [Cloudflare Email Routing DNS records](https://developers.cloudflare.com/email-routing/setup/email-routing-dns-records/)
+- [Cloudflare Email Routing testing](https://developers.cloudflare.com/email-routing/get-started/test-email-routing/)
+- [Cloudflare Web Analytics overview](https://developers.cloudflare.com/web-analytics/about/)
+- [Cloudflare Web Analytics get started](https://developers.cloudflare.com/web-analytics/get-started/)
+- [Cloudflare Pages Web Analytics](https://developers.cloudflare.com/pages/how-to/web-analytics/)
+- [Google Search Console site verification](https://support.google.com/webmasters/answer/9008080?hl=en)
+- [Google Search Console overview](https://support.google.com/webmasters/answer/9128668?hl=en)
+- [Better Stack Uptime pricing](https://betterstack.com/uptime/pricing)
+
+## Complete Stack Summary
+
+> **boosts.ninja Stack At A Glance**
+>
+> | Layer | Provider | Cost |
+> |---|---|---:|
+> | Domain renewal | Namecheap | ~$30-35/year |
+> | DNS | Cloudflare Free plan | $0 |
+> | Hosting | Cloudflare Pages | $0 |
+> | SSL/HTTPS | Cloudflare | $0 |
+> | CDN | Cloudflare | $0 |
+> | Email forwarding | Cloudflare Email Routing | $0 |
+> | Analytics | Cloudflare Web Analytics | $0 |
+> | Search/SEO monitoring | Google Search Console | $0 |
+> | Optional uptime monitoring | Better Stack free tier | $0 |
+> | Optional forms backend | Web3Forms free tier | $0 |
+>
+> **Total recurring cost:** about **$30-35/year** for the domain only. Everything else in the recommended stack is free, and none of the free services above require a credit card to get started.
 
